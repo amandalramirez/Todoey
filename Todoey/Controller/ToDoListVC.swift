@@ -10,7 +10,7 @@ import UIKit
 
 class ToDoListVC: UITableViewController {
 
-    let itemArray = ["Study", "Do Laundry", "Buy Groceries"]
+    var itemArray = ["Study", "Do Laundry", "Buy Groceries"]
     
     
     override func viewDidLoad() {
@@ -53,6 +53,33 @@ class ToDoListVC: UITableViewController {
         
         //this will deselect the selected cell, no longer shows the highlighted gray 
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    //MARk - Add New Items
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textfield = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            
+            //what will happen once the user clicks the Add Item button on UIAlert
+            self.itemArray.append(textfield.text!)
+            self.tableView.reloadData()
+        }
+        
+        //adds an alert textfield so that the user can type in their todo
+        alert.addTextField { (alertTextfield) in
+            alertTextfield.placeholder = "Create new item"
+            textfield = alertTextfield
+        }
+        
+        alert.addAction(action)
+        
+        present(alert, animated: true, completion: nil)
+        
     }
     
 }
