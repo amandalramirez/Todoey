@@ -12,9 +12,16 @@ class ToDoListVC: UITableViewController {
 
     var itemArray = ["Study", "Do Laundry", "Buy Groceries"]
     
+    //data persistence ~ Using User Defaults (which gets saved in a .plist file) 
+    let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //In order to retrieve our data from the User Defaults .plist, must set itemArray as the array inside User Defaults
+        if let items = defaults.array(forKey: "TodoListArray") as! [String] {
+            itemArray = items
+        }
         // Do any additional setup after loading the view, typically from a nib.
     }
 
@@ -67,6 +74,10 @@ class ToDoListVC: UITableViewController {
             
             //what will happen once the user clicks the Add Item button on UIAlert
             self.itemArray.append(textfield.text!)
+            
+            //this saves the itemArray in the User Defaults .plist file as "TodoListArray"
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            
             self.tableView.reloadData()
         }
         
