@@ -16,8 +16,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        //grabs User Defaults .plist file 
+        //grabs User Defaults .plist file
+        /*Important Note: User Defaults should not be used as database. It should only store bits of information. This is because
+        the User Defaults .plist gets loaded up before you can access any of its keys. This affects the speed and efficiency of the app. */
+        
         //print(NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).last! as String)
+        //Use this path to open finder and find the .plist file 
         
         
         return true
