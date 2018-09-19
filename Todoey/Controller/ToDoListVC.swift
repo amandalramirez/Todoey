@@ -10,10 +10,11 @@ import UIKit
 
 class ToDoListVC: UITableViewController {
 
-    var itemArray : [Item]()
+    var itemArray = [Item]()
     
+    //(edit) Note: User Defaults is not efficient for our data persistence.
     //data persistence ~ Using User Defaults (which gets saved in a .plist file) 
-    let defaults = UserDefaults.standard
+    //let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,10 +23,12 @@ class ToDoListVC: UITableViewController {
         newItem.title = "Buy milk"
         itemArray.append(newItem)
         
+        //(edit to code below) NOTE: cannot store custom object 'Item' array in User Defaults ~ misuse of User Defaults. Need a better solution to persist data. Also note that User Defaults is intended for small pieces of data from a limited set of data types. User Defaults is inefficient since it loads the .plist before data can be used or read.
         //In order to retrieve our data from the User Defaults .plist, must set itemArray as the array inside User Defaults
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
+        //if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
+        //    itemArray = items
+        //}
+        
         // Do any additional setup after loading the view, typically from a nib.
     }
 
@@ -110,8 +113,9 @@ class ToDoListVC: UITableViewController {
             newItem.title = textfield.text!
             self.itemArray.append(newItem)
             
+            //(edit) Note: User Defaults is not efficient for our data persistence.
             //this saves the itemArray in the User Defaults .plist file as "TodoListArray"
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            // self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
             self.tableView.reloadData()
         }
