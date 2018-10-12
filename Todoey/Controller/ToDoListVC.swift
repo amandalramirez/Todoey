@@ -13,6 +13,12 @@ class ToDoListVC: UITableViewController {
     
     var itemArray = [Item]()
     
+    var selectedCategory : Category? {
+        didSet {
+            loadItems()
+        }
+    }
+    
     //we need the object of the class AppDelegate, in order to grab the .viewContext of the .persistentContainer
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
@@ -20,8 +26,6 @@ class ToDoListVC: UITableViewController {
         super.viewDidLoad()
         
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        
-        loadItems()
     }
 
     override func didReceiveMemoryWarning() {
@@ -77,12 +81,11 @@ class ToDoListVC: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textfield.text!
             newItem.done = false
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
             
            
             self.saveItems()
-            
-            self.tableView.reloadData()
         }
         
         alert.addTextField { (alertTextfield) in
@@ -106,15 +109,77 @@ class ToDoListVC: UITableViewController {
             print("error saving context \(error)")
         }
         
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
     
-    func loadItems() {
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+    // has default value Item.fetchRequest() in cases where request parameter isn't passed in
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate : NSPredicate? = nil) {
+        
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        //to make sure predicate is not nil
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
+//        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, predicate])
+//
+//        request.predicate = compoundPredicate
+        
+        //let request : NSFetchRequest<Item> = Item.fetchRequest()
         do {
            itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from context \(error)")
+        }
+        
+        tableView.reloadData()
+    }
+}
+
+//MARK: - Search bar methods
+
+extension ToDoListVC : UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        //[cd] ignores case and diacritic sensitivies when doing string comparisons
+        //let predicate = NSPredicate(format: "title CONTAINS[cd] @%", searchBar.text!)
+        //request.predicate = predicate
+        // below is code refactored
+        
+        let searchPredicate = NSPredicate(format: "title CONTAINS[cd] @%", searchBar.text!)
+        
+        //let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        //request.sortDescriptors = [sortDescriptor]
+        // below is code refactored
+        request.sortDescriptors = [NSSortDescriptor(key: "title CONTAINS[cd] @%", ascending: true)]
+        
+        //  do {
+        //    itemArray = try context.fetch(request)
+        // } catch {
+        //      print("Error fetching data from context \(error)")
+        // }
+        // tableView.reloadData()
+        
+        loadItems(with: request, predicate: searchPredicate)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            // where you should update user interface elements
+            // this code is being run in the foreground
+            DispatchQueue.main.async {
+                // hides keyboard and searchBar cursor by establishing that searchbar is no longer selected
+                // e.i. return to the original state before being activated
+                searchBar.resignFirstResponder()
+            }
         }
     }
     
