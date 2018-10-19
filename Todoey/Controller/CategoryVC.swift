@@ -8,20 +8,19 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class CategoryVC: UITableViewController {
+class CategoryVC: SwipeTableVC {
 
     let realm = try! Realm()
     
     var categories: Results<Category>?
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         load()
+        
+        tableView.separatorStyle = .none
     }
 
     //MARK: - TableView Datasource Methods
@@ -31,10 +30,18 @@ class CategoryVC: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+      
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
-        
+        if let category = categories?[indexPath.row] {
+            
+            cell.textLabel?.text = category.name
+            
+            guard let color = UIColor(hexString: category.cellColor) else {fatalError()}
+            cell.backgroundColor = color
+            cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+        }
+      
         return cell
     }
     
@@ -42,7 +49,6 @@ class CategoryVC: UITableViewController {
     // what should happen when a category is selected
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         performSegue(withIdentifier: "goToItems", sender: self)
-        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -64,6 +70,7 @@ class CategoryVC: UITableViewController {
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
             let newCategory = Category()
             newCategory.name = textfield.text!
+            newCategory.cellColor = UIColor.randomFlat.hexValue()
             
             //no need to update categories, as Results auto-updates
             
@@ -99,6 +106,19 @@ class CategoryVC: UITableViewController {
         categories = realm.objects(Category.self)
         
         tableView.reloadData()
+    }
+    
+    //MARK: - Delete Data from Swipe
+    override func updateModel(at indexPath: IndexPath) {
+        if let categoryForDeletion = categories?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(categoryForDeletion)
+                }
+            } catch {
+                print("error deleting category \(error)")
+            }
+        }
     }
     
 }

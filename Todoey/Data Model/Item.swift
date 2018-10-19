@@ -13,6 +13,7 @@ class Item: Object {
     @objc dynamic var title: String = ""
     @objc dynamic var done: Bool = false
     @objc dynamic var dateCreated: Date?
+    @objc dynamic var cellColor: String = ""
     
     // relationship
     // each item will have a parent Category 
